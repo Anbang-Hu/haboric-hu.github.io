@@ -124,7 +124,7 @@ body,
 }
 body {
   background: #fff;
-  font: 14px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font: 18px Calibri, "Helvetica Neue", Helvetica, Arial, sans-serif;
   -webkit-text-size-adjust: 100%;
 }
 .left,
@@ -397,9 +397,9 @@ a.article-title:hover {
   margin: 0;
 }
 .article-entry blockquote footer {
-  font-size: 14px;
+  font-size: 18px;
   margin: 1.6em 0;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: Calibri, "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 .article-entry blockquote footer cite:before {
   content: "—";
@@ -608,7 +608,7 @@ a.article-title:hover {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
-  font: 14px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font: 14px Calibri, "Helvetica Neue", Helvetica, Arial, sans-serif;
   padding: 0 15px;
   color: #555;
   outline: none;
@@ -812,7 +812,7 @@ a.article-title:hover {
   padding: 10px 10px;
   overflow: auto;
   color: #666;
-  line-height: 22.400000000000002px;
+  line-height: 28.8px;
 }
 .article-entry .highlight .gutter pre,
 .article-entry .gist .gist-file .gist-data .line-numbers {
@@ -873,7 +873,7 @@ a.article-title:hover {
   border-radius: 0;
 }
 .article-entry .highlight .line {
-  height: 22.400000000000002px;
+  height: 28.8px;
 }
 .article-entry .gist {
   margin: 0 -20px;
@@ -908,7 +908,7 @@ a.article-title:hover {
 .article-entry .gist .gist-file .gist-meta {
   background: #f7f7f7;
   color: #999;
-  font: 0.85em "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font: 0.85em Calibri, "Helvetica Neue", Helvetica, Arial, sans-serif;
   text-shadow: 0 0;
   padding: 0;
   margin-top: 1em;

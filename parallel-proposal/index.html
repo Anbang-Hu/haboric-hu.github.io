@@ -3,26 +3,29 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Fully Convolutional Networks in Halide (Proposal) | Hexo</title>
+  <title>Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="Anbang Hu, Xingda Zhai
+  <meta name="description" content="Fully Convolutional Networks in Halide (Proposal)
+Anbang Hu, Xingda Zhai
 Overview
-Convolutional networks have been widely used in a variety of computer vision tasks, including classification [1], object detection [2], and human pose recognition [3].">
+Convolutional networks have been widely used in a variety of computer vision tasks, including classification [1], obje">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Fully Convolutional Networks in Halide (Proposal)">
+<meta property="og:title" content="Hexo">
 <meta property="og:url" content="http://yoursite.com/parallel-proposal/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description" content="Anbang Hu, Xingda Zhai
+<meta property="og:description" content="Fully Convolutional Networks in Halide (Proposal)
+Anbang Hu, Xingda Zhai
 Overview
-Convolutional networks have been widely used in a variety of computer vision tasks, including classification [1], object detection [2], and human pose recognition [3].">
+Convolutional networks have been widely used in a variety of computer vision tasks, including classification [1], obje">
 <meta property="og:image" content="http://www.eecs.berkeley.edu/~shhuang/img/alexnet_small.png">
 <meta property="og:image" content="http://img.blog.csdn.net/20150714192055956?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center">
-<meta property="og:updated_time" content="2016-04-02T01:00:32.000Z">
+<meta property="og:updated_time" content="2016-04-02T01:22:43.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Fully Convolutional Networks in Halide (Proposal)">
-<meta name="twitter:description" content="Anbang Hu, Xingda Zhai
+<meta name="twitter:title" content="Hexo">
+<meta name="twitter:description" content="Fully Convolutional Networks in Halide (Proposal)
+Anbang Hu, Xingda Zhai
 Overview
-Convolutional networks have been widely used in a variety of computer vision tasks, including classification [1], object detection [2], and human pose recognition [3].">
+Convolutional networks have been widely used in a variety of computer vision tasks, including classification [1], obje">
 <meta name="twitter:image" content="http://www.eecs.berkeley.edu/~shhuang/img/alexnet_small.png">
   
     <link rel="alternative" href="/atom.xml" title="Hexo" type="application/atom+xml">
@@ -43,25 +46,16 @@ Convolutional networks have been widely used in a variety of computer vision tas
   
   <div class="article-inner">
     
-      <header class="article-header">
-        
-  
-    <h1 class="article-title" itemprop="name">
-      Fully Convolutional Networks in Halide (Proposal)
-    </h1>
-  
-
-      </header>
-    
     <div class="article-meta">
       <a href="/parallel-proposal/index.html" class="article-date">
-  <time datetime="2016-04-02T00:43:08.000Z" itemprop="datePublished">2016-04-01</time>
+  <time datetime="2016-04-02T01:22:43.000Z" itemprop="datePublished">2016-04-01</time>
 </a>
       
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        <p>Anbang Hu, Xingda Zhai</p>
+        <h1>Fully Convolutional Networks in Halide (Proposal)</h1>
+<p>Anbang Hu, Xingda Zhai</p>
 <h2><strong>Overview</strong></h2>
 <p>Convolutional networks have been widely used in a variety of computer vision tasks, including classification <sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup>, object detection <sup class="footnote-ref"><a href="#fn2" id="fnref2">[2]</a></sup>, and human pose recognition <sup class="footnote-ref"><a href="#fn3" id="fnref3">[3]</a></sup>. Convolutional networks <sup class="footnote-ref"><a href="#fn1" id="fnref1:1">[1]</a></sup> usually consist of several convolutional layers (coupled with pooling layers) that followed by fully connected layers. Long <em>et al.</em> <sup class="footnote-ref"><a href="#fn4" id="fnref4">[4]</a></sup> introduces fully convolutional networks that replace fully connected layers in a convolutional network with convolutional layers for image segmentation tasks. According to them, fully convolutional networks can achieve state-of-the-art image segmentation on standard datasets (e.g. PASCAL VOC). In our project, we aim to implement fully convolutional networks in Halide to potentially achieve faster training and testing without losing accuracy.</p>
 <h2><strong>Background</strong></h2>
@@ -115,30 +109,30 @@ Convolutional networks have been widely used in a variety of computer vision tas
 <table>
 <thead>
 <tr>
-<th>Time</th>
-<th>Task</th>
+<th style="text-align:center">Time</th>
+<th style="text-align:center">Task</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Week 1</td>
-<td>Familiarize ourselves with programming in Halide.</td>
+<td style="text-align:center">Week 1</td>
+<td style="text-align:center">Familiarize ourselves with programming in Halide.</td>
 </tr>
 <tr>
-<td>Week 2</td>
-<td>Code up vision layers using Halide.</td>
+<td style="text-align:center">Week 2</td>
+<td style="text-align:center">Code up vision layers using Halide.</td>
 </tr>
 <tr>
-<td>Week 3</td>
-<td>Train and test both Halide version of FCN and Caffe version of FCN. Compare the results.</td>
+<td style="text-align:center">Week 3</td>
+<td style="text-align:center">Train and test both Halide version of FCN and Caffe version of FCN. Compare the results.</td>
 </tr>
 <tr>
-<td>Week 4</td>
-<td>Tuning our Halide code to achieve better results. If the results fall short of expectation, we will analyze the reasons behind.</td>
+<td style="text-align:center">Week 4</td>
+<td style="text-align:center">Tuning our Halide code to achieve better results. If the results fall short of expectation, we will analyze the reasons behind.</td>
 </tr>
 <tr>
-<td>Week 5</td>
-<td>Finalize our work and report. Possibly extend our work if we have time.</td>
+<td style="text-align:center">Week 5</td>
+<td style="text-align:center">Finalize our work and report. Possibly extend our work if we have time.</td>
 </tr>
 </tbody>
 </table>
