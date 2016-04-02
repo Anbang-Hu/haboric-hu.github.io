@@ -3,18 +3,24 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Fully Convolutional Networks in Halide | Hexo</title>
+  <title>Fully Convolutional Networks in Halide (Proposal) | Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description">
+  <meta name="description" content="Anbang Hu, Xingda Zhai
+OverviewConvolutional networks have been widely used in a variety of computer vision tasks, including classification [^imagenet], object detection [^fastRCNN], and human pose re">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Fully Convolutional Networks in Halide">
+<meta property="og:title" content="Fully Convolutional Networks in Halide (Proposal)">
 <meta property="og:url" content="http://yoursite.com/parallel-proposal/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description">
-<meta property="og:updated_time" content="2016-04-02T00:44:57.000Z">
+<meta property="og:description" content="Anbang Hu, Xingda Zhai
+OverviewConvolutional networks have been widely used in a variety of computer vision tasks, including classification [^imagenet], object detection [^fastRCNN], and human pose re">
+<meta property="og:image" content="http://www.eecs.berkeley.edu/~shhuang/img/alexnet_small.png">
+<meta property="og:image" content="http://img.blog.csdn.net/20150714192055956?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center">
+<meta property="og:updated_time" content="2016-04-02T00:56:28.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Fully Convolutional Networks in Halide">
-<meta name="twitter:description">
+<meta name="twitter:title" content="Fully Convolutional Networks in Halide (Proposal)">
+<meta name="twitter:description" content="Anbang Hu, Xingda Zhai
+OverviewConvolutional networks have been widely used in a variety of computer vision tasks, including classification [^imagenet], object detection [^fastRCNN], and human pose re">
+<meta name="twitter:image" content="http://www.eecs.berkeley.edu/~shhuang/img/alexnet_small.png">
   
     <link rel="alternative" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -38,7 +44,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      Fully Convolutional Networks in Halide
+      Fully Convolutional Networks in Halide (Proposal)
     </h1>
   
 
@@ -52,7 +58,76 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        
+        <p>Anbang Hu, Xingda Zhai</p>
+<h2 id="Overview"><a href="#Overview" class="headerlink" title="Overview"></a><strong>Overview</strong></h2><p>Convolutional networks have been widely used in a variety of computer vision tasks, including classification [^imagenet], object detection [^fastRCNN], and human pose recognition [^deeppose]. Convolutional networks [^imagenet] usually consist of several convolutional layers (coupled with pooling layers) that followed by fully connected layers. Long <em>et al.</em> [^FCN] introduces fully convolutional networks that replace fully connected layers in a convolutional network with convolutional layers for image segmentation tasks. According to them, fully convolutional networks can achieve state-of-the-art image segmentation on standard datasets (e.g. PASCAL VOC). In our project, we aim to implement fully convolutional networks in Halide to potentially achieve faster training and testing without losing accuracy.</p>
+<h2 id="Background"><a href="#Background" class="headerlink" title="Background"></a><strong>Background</strong></h2><p>In this section, we provide a minimally sufficient background knowledge about convolutional networks and fully convolutional networks that are necessary for our project. The presentation of these networks will be in the context of image segmentation.</p>
+<h3 id="Convolutional-Networks-vs-Fully-Convolutional-Networks"><a href="#Convolutional-Networks-vs-Fully-Convolutional-Networks" class="headerlink" title="Convolutional Networks vs Fully Convolutional Networks"></a><strong>Convolutional Networks vs Fully Convolutional Networks</strong></h3><p>Convolutional (neural) network (CNN) has gained momentum since the paper by Krizhevsky, <em>et al.</em> [^imagenet]. CNN has a strong analogy to features of vision systems of humans and animals. Layer-to-layer structure in the model resembles that from retina to visual cortex. From layer to layer, it learns high-level features related to different types of objects in images. AlexNet [^imagenet] is the first successful example of CNN, whose structure is shown below.<br><img src="http://www.eecs.berkeley.edu/~shhuang/img/alexnet_small.png" alt="AlexNet"></p>
+<p>For pixel level image segmentation problems, Long <em>et al.</em> proposed a method that converts a pre-trained CNN into a fully convolutional network (FCN), by discarding the classification layer, replacing all fully connected layers with convolutional layers, and appending a $1 \times 1$ convolution with channel dimension equal to the number of object classes to predict scores for each of the classes (including background). In FCN for image segmentation, a stack of convolutional layers are followed by an upsampling layer, which upsamples the features from last layer such that the 2D size (height and width) of the output matches the 2D size (height and width) of the input image. This output is then used for pixel-level labelling to generate the final segmentation result. The figure below shows the working pipeline of FCN adapted from AlexNet (FCN-AlexNet) [^FCN]. Notice that the last three layers are convolutional layers instead of fully connected layers in AlexNet shown above.<br><img src="http://img.blog.csdn.net/20150714192055956?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center" alt="FCN-AlexNet"></p>
+<p>Since a main part of our project is to implement key components of CNNs (which will be assembled into FCN), it is beneficial that we revisit definitions and functionalities of these components. </p>
+<ul>
+<li><p><strong>fully connected layer</strong> A fully connected (FC) layer is a network layer connecting each neuron with all activations of previous layer. A FC layer can extract meaningful information from input, but number of parameters is so too high to be tractable. Another problem is that FC layers ignore spatial information that is critical in pixel level segmentation problems.</p>
+</li>
+<li><p><strong>convolutional layer</strong> In a convolutional layer, each neuron is only connected to a local region of neurons in the previous layers (receptive field). For each feature map in current layer, the set of weights and bias for each neuron is shared. Consequently, the number of parameters becomes maneuverable. In addition, convolutional layers are proven to perform well in vision tasks.</p>
+</li>
+<li><p><strong>pooling layer</strong> A pooling layer often follows a convolutional layer, which helps semantic feature extraction. Pooling reduces the number of parameters in the network, which in turn controls overfitting. The mostly used pooling function these days is max-pooling, which exports the maximum value of a local region. It subsamples the input and achieves invariance to local transformation.</p>
+</li>
+<li><p><strong>ReLU</strong> Rectified Linear Units (ReLUs) is a non-linear activation function that has advantage of enabling faster convergence over other activation functions such as sigmoid, tanh.</p>
+</li>
+</ul>
+<h2 id="Challenge-Halide-as-a-new-language"><a href="#Challenge-Halide-as-a-new-language" class="headerlink" title="Challenge: Halide as a new language"></a><strong>Challenge: Halide as a new language</strong></h2><p><a href="http://halide-lang.org/" target="_blank" rel="external">Halide</a> is a programming language specifically designed for high-performance image processing on modern machines. It separates algorithm from schedules, making it easier and more flexible to write image processing code. As far as our group is concerned, Halide is a brand new programming language. Before Halide implementation of FCN for image segmentation, we need to familiarize ourselves with Halide, which could be nontrivial work.</p>
+<h2 id="Resources"><a href="#Resources" class="headerlink" title="Resources"></a><strong>Resources</strong></h2><p>We will start our project from scratch. The resources required in our project are GPUs (may also need CPUs, Xeon Phi) on Latedays nodes to train and test the Halide version of FCN.</p>
+<h2 id="Programming-language"><a href="#Programming-language" class="headerlink" title="Programming language"></a><strong>Programming language</strong></h2><p>Since current front end of Halide is embedded in C++, our implementation will be done in C++ and Halide. As we will present in <strong>Goals and deliverables</strong>, we might extend our work to implement FCN without using Halide, and compare the performance. We might also explore the possibility of compressing deep networks using Halide. Our initial guess is that Halide would not help in deep compression in that it is not designed for it. So we will try to implement deep compression on our own in c++ if time permits.</p>
+<h2 id="Dataset"><a href="#Dataset" class="headerlink" title="Dataset"></a><strong>Dataset</strong></h2><p>We will train and test the Halide version of FCN using PASCAL VOC dataset. <a href="http://host.robots.ox.ac.uk/pascal/VOC/" target="_blank" rel="external">PASCAL VOC</a> stands for PASCAL Visual Object Classes (VOC). It is a benchmark in visual object category recognition and detection. It provides us with a standard dataset of images and annotations, and standard evaluation procedures. VOC dataset contains a 20 object classes for evaluating image segmentation tasks.</p>
+<h2 id="Goals-and-deliverables"><a href="#Goals-and-deliverables" class="headerlink" title="Goals and deliverables"></a><strong>Goals and deliverables</strong></h2><h3 id="Basic-goals"><a href="#Basic-goals" class="headerlink" title="Basic goals"></a><strong>Basic goals</strong></h3><p>Our goal is to implement FCN using Halide and hopefully achieve faster training and testing without losing too much accuracy. In order to achieve this goal, we need to implement the following components:</p>
+<p><em>Vision Layers</em></p>
+<ul>
+<li><code>Convolution</code></li>
+<li><code>Pooling</code></li>
+<li><code>Local Response Normalization (LRN)</code></li>
+<li><code>Dropout</code></li>
+<li><code>Activation</code> (<code>ReLU</code>, <code>Sigmoid</code>, <code>TanH</code>)</li>
+<li><code>ImageData</code></li>
+</ul>
+<p>With these vision layers in Halide, we can compose them into different networks for evaluation. Our first step is to compose them into Halide version of fully convolutional AlexNet (Halide-FCN-AlexNet). We will finetune Halide-FCN-AlexNet and Caffe-FCN-AlexNet on a subset of PASCAL VOC (thousands of images) with weight parameters in both nets initialized with weights pre-trained on PASCAL VOC and compare the time needed for convergence. We will also test both nets to compare the time needed to do inference. Our expectation is that with Halide, we have more power in scheduling tasks, which can potentially increase the training speed and testing speed. Since the algorithm in FCN is the same as previous work [^FCN], we also expect that the performance will not differ too much.</p>
+<p>After testing Halide version of FCN-AlexNet, we will compose them into other networks and evaluate their performance against Caffe version.</p>
+<h3 id="More-we-hope-to-achieve"><a href="#More-we-hope-to-achieve" class="headerlink" title="More we hope to achieve"></a><strong>More we hope to achieve</strong></h3><p>If we have time, we can extend our work to a more complete library of neural networks by implementing other layers (e.g. fully connected layers: the reason that we will not implement the fully connected layer is that we do not need it in FCN) using Halide.</p>
+<p>A more interesting extension is to compress the deep network developed with Halide building blocks such that it is possible to deploy fast deep network in mobile apps. This can be achieved by pruning the network, quantizing the weights, and encoding weights with Huffman coding [^deepcompression]. We are really interested in this part. We will go for this part if time permits.</p>
+<h2 id="Timetable"><a href="#Timetable" class="headerlink" title="Timetable"></a><strong>Timetable</strong></h2><table>
+<thead>
+<tr>
+<th>Time</th>
+<th>Task</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Week 1</td>
+<td>Familiarize ourselves with programming in Halide.</td>
+</tr>
+<tr>
+<td>Week 2</td>
+<td>Code up vision layers using Halide.</td>
+</tr>
+<tr>
+<td>Week 3</td>
+<td>Train and test both Halide version of FCN and Caffe version of FCN. Compare the results.</td>
+</tr>
+<tr>
+<td>Week 4</td>
+<td>Tuning our Halide code to achieve better results. If the results fall short of expectation, we will analyze the reasons behind.</td>
+</tr>
+<tr>
+<td>Week 5</td>
+<td>Finalize our work and report. Possibly extend our work if we have time.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a><strong>References</strong></h2><p>[^imagenet]: Krizhevsky, Alex, Ilya Sutskever, and Geoffrey E. Hinton. “Imagenet classification with deep convolutional neural networks.” Advances in neural information processing systems. 2012.</p>
+<p>[^fastRCNN]:Ren, Shaoqing, et al. “Faster R-CNN: Towards real-time object detection with region proposal networks.” Advances in Neural Information Processing Systems. 2015.</p>
+<p>[^deeppose]:Toshev, Alexander, and Christian Szegedy. “Deeppose: Human pose estimation via deep neural networks.” Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition. 2014.</p>
+<p>[^FCN]:Long, Jonathan, Evan Shelhamer, and Trevor Darrell. “Fully convolutional networks for semantic segmentation.” Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition. 2015.</p>
+<p>[^deepcompression]:Han, Song, Huizi Mao, and William J. Dally. “Deep Compression: Compressing Deep Neural Networks with Pruning, Trained Quantization and Huffman Coding.” arXiv preprint arXiv:1510.00149 (2015).</p>
+
       
 
       
@@ -86,7 +161,7 @@
       <footer id="footer">
   
 	<div id="footer-info" class="inner">
-	  &copy; 2016 Anbang Hu, Xingda Zhai 
+	  &copy; 2016 Anbang Hu 
 	  - Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
 	  - Theme <a href="https://github.com/Alex-fun/hexo-theme-jane/" target="_blank">Jane</a>
 	</div>
