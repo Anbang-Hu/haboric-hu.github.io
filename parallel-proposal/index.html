@@ -19,7 +19,7 @@ Overview
 Convolutional networks have been widely used in a variety of computer vision tasks, including classification [1], obje">
 <meta property="og:image" content="http://www.eecs.berkeley.edu/~shhuang/img/alexnet_small.png">
 <meta property="og:image" content="http://img.blog.csdn.net/20150714192055956?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQv/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/Center">
-<meta property="og:updated_time" content="2016-04-02T01:43:30.000Z">
+<meta property="og:updated_time" content="2016-04-02T01:49:34.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Hexo">
 <meta name="twitter:description" content="Fully Convolutional Networks in Halide (Proposal)
@@ -48,7 +48,7 @@ Convolutional networks have been widely used in a variety of computer vision tas
     
     <div class="article-meta">
       <a href="/parallel-proposal/index.html" class="article-date">
-  <time datetime="2016-04-02T01:43:30.000Z" itemprop="datePublished">2016-04-01</time>
+  <time datetime="2016-04-02T01:49:34.000Z" itemprop="datePublished">2016-04-01</time>
 </a>
       
     </div>
@@ -91,7 +91,15 @@ Convolutional networks have been widely used in a variety of computer vision tas
 <h2><strong>Goals and deliverables</strong></h2>
 <h3><strong>Basic goals</strong></h3>
 <p>Our goal is to implement FCN using Halide and hopefully achieve faster training and testing without losing too much accuracy. In order to achieve this goal, we need to implement the following components:</p>
-<p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Vision layers:</span><br><span class="line">	Convolution</span><br><span class="line">	Pooling</span><br><span class="line">	Local Response Normalization (LRN)</span><br><span class="line">	Dropout</span><br><span class="line">	Activation (ReLU, Sigmoid, TanH)</span><br><span class="line">	ImageData</span><br></pre></td></tr></table></figure></p>
+<p><strong>Vision layers</strong>:</p>
+<blockquote>
+<p>Convolution
+	Pooling
+	Local Response Normalization (LRN)
+	Dropout
+	Activation (ReLU, Sigmoid, TanH)
+	ImageData</p>
+</blockquote>
 <p>With these vision layers in Halide, we can compose them into different networks for evaluation. Our first step is to compose them into Halide version of fully convolutional AlexNet (Halide-FCN-AlexNet). We will finetune Halide-FCN-AlexNet and Caffe-FCN-AlexNet on a subset of PASCAL VOC (thousands of images) with weight parameters in both nets initialized with weights pre-trained on PASCAL VOC and compare the time needed for convergence. We will also test both nets to compare the time needed to do inference. Our expectation is that with Halide, we have more power in scheduling tasks, which can potentially increase the training speed and testing speed. Since the algorithm in FCN is the same as previous work <sup class="footnote-ref"><a href="#fn4" id="fnref4:2">[4]</a></sup>, we also expect that the performance will not differ too much.</p>
 <p>After testing Halide version of FCN-AlexNet, we will compose them into other networks and evaluate their performance against Caffe version.</p>
 <h3><strong>More we hope to achieve</strong></h3>
