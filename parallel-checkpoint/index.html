@@ -3,18 +3,33 @@
 <head>
   <meta charset="utf-8">
   
-  <title>parallel-checkpoint | Hexo</title>
+  <title>Fully Convolutional Networks in Halide (Checkpoint) | Hexo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description">
+  <meta name="description" content="Anbang Hu, Xingda Zhai
+View us on Github
+For project background information, please refer to our proposal webpage.
+Progress
+Vision layers
+We have implemented basic vision layers with feedforward featu">
 <meta property="og:type" content="website">
-<meta property="og:title" content="parallel-checkpoint">
+<meta property="og:title" content="Fully Convolutional Networks in Halide (Checkpoint)">
 <meta property="og:url" content="http://yoursite.com/parallel-checkpoint/index.html">
 <meta property="og:site_name" content="Hexo">
-<meta property="og:description">
-<meta property="og:updated_time" content="2016-04-15T02:05:24.000Z">
+<meta property="og:description" content="Anbang Hu, Xingda Zhai
+View us on Github
+For project background information, please refer to our proposal webpage.
+Progress
+Vision layers
+We have implemented basic vision layers with feedforward featu">
+<meta property="og:updated_time" content="2016-04-15T05:34:18.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="parallel-checkpoint">
-<meta name="twitter:description">
+<meta name="twitter:title" content="Fully Convolutional Networks in Halide (Checkpoint)">
+<meta name="twitter:description" content="Anbang Hu, Xingda Zhai
+View us on Github
+For project background information, please refer to our proposal webpage.
+Progress
+Vision layers
+We have implemented basic vision layers with feedforward featu">
   
     <link rel="alternative" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -38,7 +53,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      parallel-checkpoint
+      Fully Convolutional Networks in Halide (Checkpoint)
     </h1>
   
 
@@ -52,7 +67,35 @@
     </div>
     <div class="article-entry" itemprop="articleBody">
       
-        
+        <p>Anbang Hu, Xingda Zhai</p>
+<p><a href="https://github.com/xzhai1/latte" target="_blank" rel="external">View us on Github</a></p>
+<p>For project background information, please refer to our <a href="http://haboric-hu.github.io/parallel-proposal/" target="_blank" rel="external">proposal webpage</a>.</p>
+<h2>Progress</h2>
+<h3>Vision layers</h3>
+<p>We have implemented basic vision layers with feedforward feature that are required to stack into a fully convolutional network:</p>
+<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Convolution</span><br><span class="line">ReLU</span><br><span class="line">Pooling</span><br><span class="line">Dropout</span><br><span class="line">Crop</span><br><span class="line">Split</span><br><span class="line">Deconvolution</span><br><span class="line">SoftmaxWithLoss</span><br><span class="line">Softmax</span><br><span class="line">Silence</span><br></pre></td></tr></table></figure></p>
+<p>The current version in Halide without  parallel scheduling. We need to exploit the scheduling power of Halide.</p>
+<h3>Test driver</h3>
+<p>We test our visions layers one by one using tailored tesing drive code.</p>
+<h2>Issues</h2>
+<h3>Our hands are tied in terms of compute resources</h3>
+<p>We failed to install halide and protobuf packages on latedays nodes and GHC machines. They require <code>sudo</code>. Currently we use our own laptop and PC for development and testing. We will try to develop on GHC machines, but if it still does not work, we will stick to our laptop and PC.</p>
+<h3>Easy to learn, hard to code</h3>
+<p>We have been learning Halide during the past weeks and are now able to write code in Halide. During implementation, we felt that coding in Halide is not as easy as we expected. This is strongly reflected in the implementation of deconvolutional layer. Deconvolutional layer can be thought of as the inverse of convolutional layer, taking small input 3D volume and spitting out large input 3D volume. There is no easy way to code it up as in convolutional layer. In order to compute the value of one neuron, we need to figure out what neurons are relevant in the input layer and sum the products of input values and corresponding weights. At first glance, this seems impossible to implement in Halide. But we figured it out. // [Need to write up a concrete example describing how hard it is to implement the deconvolutional layer as opposed to convolutional layer]</p>
+<p>Since deconvolutional layer is inverse of convolutional layer, implementation of backward propagation involves only interchanging the roles of feed-forward function and backward propagation function.</p>
+<h2>Revised Plan</h2>
+<p>Required vision layers.</p>
+<p>Feedforward feature for testing.</p>
+<p>Backpropagation feature for training.</p>
+<p>We will revise our original ambitious project target in proposal and set a more reasonable goal for the later half of the project.</p>
+<h2>Schedule</h2>
+<p>Schedule needs to be as detailed as possible, indicating what specific tasks we have left and who will be responsible for which part.</p>
+<h2>Reference</h2>
+<p>[^1] Noh, Hyeonwoo, Seunghoon Hong, and Bohyung Han. &quot;Learning deconvolution network for semantic segmentation.&quot; Proceedings of the IEEE International Conference on Computer Vision. 2015.</p>
+<p>[^2] http://www.vlfeat.org/matconvnet/</p>
+<p>[^3] http://caffe.berkeleyvision.org/tutorial/layers.html</p>
+<p>[^4] Long, Jonathan, Evan Shelhamer, and Trevor Darrell. &quot;Fully convolutional networks for semantic segmentation.&quot; Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition. 2015.</p>
+
       
 
       
