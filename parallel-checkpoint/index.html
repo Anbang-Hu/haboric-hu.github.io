@@ -8,9 +8,8 @@
   <meta name="description" content="Anbang Hu, Xingda Zhai
 View us on Github
 For project background information, please refer to our proposal webpage.
-Progress
-Vision layers
-We have implemented basic vision layers with feedforward featu">
+&amp;quot;Progress for progess&apos;s sake must be discouraged&amp;quot;
+Of course we are joking h">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Fully Convolutional Networks in Halide (Checkpoint)">
 <meta property="og:url" content="http://yoursite.com/parallel-checkpoint/index.html">
@@ -18,18 +17,19 @@ We have implemented basic vision layers with feedforward featu">
 <meta property="og:description" content="Anbang Hu, Xingda Zhai
 View us on Github
 For project background information, please refer to our proposal webpage.
-Progress
-Vision layers
-We have implemented basic vision layers with feedforward featu">
-<meta property="og:updated_time" content="2016-04-15T05:34:18.000Z">
+&amp;quot;Progress for progess&apos;s sake must be discouraged&amp;quot;
+Of course we are joking h">
+<meta property="og:image" content="https://raw.githubusercontent.com/xzhai1/latte/master/images/rgb.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xzhai1/latte/master/outputs/result.png">
+<meta property="og:updated_time" content="2016-04-18T21:29:31.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Fully Convolutional Networks in Halide (Checkpoint)">
 <meta name="twitter:description" content="Anbang Hu, Xingda Zhai
 View us on Github
 For project background information, please refer to our proposal webpage.
-Progress
-Vision layers
-We have implemented basic vision layers with feedforward featu">
+&amp;quot;Progress for progess&apos;s sake must be discouraged&amp;quot;
+Of course we are joking h">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/xzhai1/latte/master/images/rgb.png">
   
     <link rel="alternative" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -70,26 +70,168 @@ We have implemented basic vision layers with feedforward featu">
         <p>Anbang Hu, Xingda Zhai</p>
 <p><a href="https://github.com/xzhai1/latte" target="_blank" rel="external">View us on Github</a></p>
 <p>For project background information, please refer to our <a href="http://haboric-hu.github.io/parallel-proposal/" target="_blank" rel="external">proposal webpage</a>.</p>
-<h2>Progress</h2>
-<h3>Vision layers</h3>
-<p>We have implemented basic vision layers with feedforward feature that are required to stack into a fully convolutional network:</p>
-<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Convolution</span><br><span class="line">ReLU</span><br><span class="line">Pooling</span><br><span class="line">Dropout</span><br><span class="line">Crop</span><br><span class="line">Split</span><br><span class="line">Deconvolution</span><br><span class="line">SoftmaxWithLoss</span><br><span class="line">Softmax</span><br><span class="line">Silence</span><br></pre></td></tr></table></figure></p>
-<p>The current version in Halide without  parallel scheduling. We need to exploit the scheduling power of Halide.</p>
-<h3>Test driver</h3>
-<p>We test our visions layers one by one using tailored tesing drive code.</p>
+<h2>&quot;Progress for progess's sake must be discouraged&quot;</h2>
+<p>Of course we are joking here. From 0 line of code to a fully fledged repo, from caffe/protobuf illiterate to reading and coding them at grade level, and from Halide admirers to practioners (or haters depending on perspectives), a lot can be said for our progress. Here are some of our milestones.</p>
+<h3>ConvNets, Caffe and protobuf, a hell of a learning curve!</h3>
+<p>We started the project by learning the mechanics of ConvNets. After all, we weren't ML/CV PhD's and we needed to start from 0. Stanford's CS231N class <a href="http://cs231n.github.io/" target="_blank" rel="external">notes</a> and <a href="http://cs231n.stanford.edu/syllabus.html" target="_blank" rel="external">website</a> were a godsend. They don't assume we have already published on the subjects, and do an excellent job in motivating and helping us visualize the network like we are 5-year-old's.</p>
+<p>Then we went about getting acquainted with the framework that supposedly makes building and training such a network easy, so easy in fact that you don't even have to write a single line of code. &lt;font color=&quot;red&quot;&gt;One first finesses one's images into a format Caffe can read(LMDB or HDF5)&lt;/font&gt;. Then one defines the desired network architecture and solver in a language Caffe speaks(protobuf, explained next). Lastly, if available, one supplies a pretrained model (if available or from previous training iterations) to Caffe to expedite the training/finetuning process. All is done without a line of code, that is if you stay <strong>within the framework</strong>.</p>
+<p>However, since we are hacking the framework, we had to go out of the framework. To start, we had to deconstruct the trained model. An architecture with trained weights(collectively known as the model), like the <a href="https://github.com/shelhamer/fcn.berkeleyvision.org" target="_blank" rel="external">one</a> we are trying to construct, is saved in binary serialized by protobuf, a fantastic beast we have never set eyes let alone finding it.</p>
+<p>Once we found it, it was indeed fantastic. Each compoment of Caffe, its layers, their parameters and the associated data are encapsulated in <a href="https://github.com/BVLC/caffe/blob/master/src/caffe/proto/caffe.proto" target="_blank" rel="external">caffe.proto</a>. They are human readable, not littered with accessor methods, and best of all, better documented than the Caffe website. Protobuf compiler generates <code>.h</code> and <code>.cpp</code> files containing accessor methods for all the data structure defined therein.</p>
+<h3>Replicating layers</h3>
+<p>On the component level, we have implemented the basic building blocks in Halide necessary to replicate the FCN. &lt;font color=&quot;red&quot;&gt;We are yet to explored Halide's different scheduling possibilities.&lt;/font&gt; Summary as follows:</p>
+<p>Vision Layer:
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Convolution</span><br><span class="line">Pooling</span><br><span class="line">Deconvolution</span><br></pre></td></tr></table></figure></p>
+<p>Activation Layer:
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ReLU</span><br></pre></td></tr></table></figure></p>
+<p>Common Layer:
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Crop</span><br><span class="line">Dropout</span><br><span class="line">Split</span><br><span class="line">Silence</span><br></pre></td></tr></table></figure></p>
+<p>Loss Layer:
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SoftmaxWithLoss</span><br><span class="line">Softmax</span><br></pre></td></tr></table></figure></p>
+<p>On the network level, we created a class that can read in the trained model and build the network automatically. In addition, we wrote test harness to run our implementation.</p>
+<h3>Scheduling in Halide</h3>
+<p>&lt;font color=&quot;red&quot;&gt;Should say something here, since we have implemented very simple scheduling according to Halide tutorial for convolution. &lt;/font&gt;</p>
 <h2>Issues</h2>
-<h3>Our hands are tied in terms of compute resources</h3>
-<p>We failed to install halide and protobuf packages on latedays nodes and GHC machines. They require <code>sudo</code>. Currently we use our own laptop and PC for development and testing. We will try to develop on GHC machines, but if it still does not work, we will stick to our laptop and PC.</p>
-<h3>Easy to learn, hard to code</h3>
-<p>We have been learning Halide during the past weeks and are now able to write code in Halide. During implementation, we felt that coding in Halide is not as easy as we expected. This is strongly reflected in the implementation of deconvolutional layer. Deconvolutional layer can be thought of as the inverse of convolutional layer, taking small input 3D volume and spitting out large input 3D volume. There is no easy way to code it up as in convolutional layer. In order to compute the value of one neuron, we need to figure out what neurons are relevant in the input layer and sum the products of input values and corresponding weights. At first glance, this seems impossible to implement in Halide. But we figured it out. // [Need to write up a concrete example describing how hard it is to implement the deconvolutional layer as opposed to convolutional layer]</p>
+<h3>Memory vs speed</h3>
+<p>&lt;font color=&quot;red&quot;&gt;Currently our implementation of convolution does not use im2col and matrix matrix multiplication.&lt;/font&gt;</p>
+<h3><code>sudo</code> make me a sandwich</h3>
+<p>We started our development on our laptops and decided to move to a dedicated machine with real cores and GPUs as our testing was no longer constrained to single layer. We have encountered the following problem:</p>
+<ol>
+<li>On AFS machines, i.e. GHC and linux.andrew.cmu.edu, we have linking errors neither present on either LATEDAYS head node nor our laptops. We run Ubuntu 14.04.</li>
+<li>On LATEDAYS head node, we have linking error relating to <code>libHalide.so</code> identical to the <a href="https://piazza.com/class/iirmvzoqbhk1hz?cid=1174" target="_blank" rel="external">issue</a> in Piazza. We tried building Halide from source with the LLVM fedora release, since LATEDAYS is RedHat Linux, with no success.</li>
+</ol>
+<p>We are hoping to resolve the issues with course staff soon but if we make no progress in the coming week, we will stick to our laptops.</p>
+<h3><em>Caveat emptor</em></h3>
+<p>That is the label that Halide should put on its website, in large font. We learnt Halide by implementing all the basic layers in Caffe. In the beginning, it was all too easy to be true: we spent most of our times setting up the boilerplate for our framework and only 1 or 2 lines for the actual image processing algorithm. Halide is great if you want the same thing done to each pixel in the input the same number of times. Case in point, convolution: slide the kernel around the input, at each footprint, perform reduction for each channel and put the result in the right cell in the output. &lt;font color=&quot;red&quot;&gt;It is straightforward with define this operation in Halide.&lt;/font&gt; We cruised through the FCN model until the last layer: deconvolution.</p>
+<p>:::warning
+Real inverse of convolution, but this is not what caffe implements.
+:::
+Deconvolutional layer can be thought of as the inverse of convolutional layer, taking small input 3D volume and spitting out large output 3D volume. In order to compute the value of one neuron, we need to figure out what neurons are relevant in the input layer and sum the products of input values and corresponding weights. At first glance, this seems impossible to implement in Halide. But we figured it out. // [Need to write up a concrete example describing how hard it is to implement the deconvolutional layer as opposed to convolutional layer]</p>
 <p>Since deconvolutional layer is inverse of convolutional layer, implementation of backward propagation involves only interchanging the roles of feed-forward function and backward propagation function.</p>
+<h4>Implementation of deconvolutional layer</h4>
+<p>Since padding in deconvolution is not common, we assume that there is no padding in deconvolutional layer. Also for ease of thinking, we first discuss 2D case, then extend the work to 3D case.</p>
+<h5>2D case</h5>
+<p>Given input volume of size $H_1 \times W_1$, kernel of size $K \times K$, stride $S$, let $(x_1,y_1),(x_1<sup>L,y_1</sup>L),(x_1<sup>R,y_1</sup>R)$ denote neurons in input, $(x_2,y_2)$ denote neuron in output. The goal is to compute the value at $(x_2,y_2)$. We need to compute the following:</p>
+<ul>
+<li>Output size $H_2 \times W_2$:
+$H_2 = K + (H_1 - 1) \times S$,
+$W_2 = K + (W_1 - 1) \times S$.
+:::info
+$width = kernel_size + (input.width() - 1) * stride$
+$height = kernel_size + (input.height() - 1) * stride$
+:::</li>
+<li>For each neuron $(x_2,y_2)$ in output, compute the corresponding upper left neuron and lower right neuron in input (used in definition of RDom):
+$x_1^L(x_2) = (\max(x_2 - K + 1, 0) + S - 1)/S$,
+$y_1^L(y_2) = (\max(y_2 - K + 1, 0) + S - 1)/S$,
+$x_1^R(x_2) = x_2/S$,
+$y_1^R(y_2) = y_2/S$.
+:::info
+RDom $r(0, x_1^R(x_2) - x_1^L(x_2) + 1, 0, y_1^R(y_2) - y_1^L(y_2) + 1)$
+:::</li>
+<li>For fixed $(x_2,y_2)$, let $(x_1(x_2),y_1(y_2)) = (x_1<sup>L(x_2)+r.x,y_1</sup>L(y_2)+r.y)$ is in RDom in input, compute $(x_2,y_2)$ in kernel coordinate system:
+$x_2^{\prime}(x_2) = x_2 - x_1(x_2) \times S$,
+$y_2^{\prime}(y_2) = y_2 - y_1(y_2) \times S$.
+:::info
+To retrieve weights in kernel: $kernel(x_2<sup>{\prime}(x_2),y_2</sup>{\prime}(y_2))$;
+:::</li>
+<li>Compute values for output neuron $(x_2,y_2)$:
+:::info
+Func $deconvolution$
+$deconvolution(x_2, y_2) = sum(kernel(x_2<sup>{\prime}(x_2),y_2</sup>{\prime}(y_2)) * input(x_1(x_2),y_1(y_2)))$
+:::</li>
+</ul>
+<h5>3D case</h5>
+<p>3D case is more or less the same as 2D case. We only need to take care of depth by adding depth variable and biases.
+:::info
+RDom $r(r(0, x_1^R(x_2) - x_1^L(x_2) + 1, 0, y_1^R(y_2) - y_1^L(y_2) + 1),0,z)$
+Func $deconvolution$
+\begin{aligned}
+&amp;deconvolution(x_2, y_2,z) \
+=&amp; sum(kernel(x_2<sup>{\prime}(x_2),y_2</sup>{\prime}(y_2),z*channels+r.z) * input(x_1(x_2),y_1(y_2),r.z) + bias(r.z)
+\end{aligned}
+:::</p>
+<p>:::success
+Caffe implements convolution and deconvolution by matrix matrix multiplication after im2col operation on input volumes.
+:::</p>
 <h2>Revised Plan</h2>
-<p>Required vision layers.</p>
-<p>Feedforward feature for testing.</p>
-<p>Backpropagation feature for training.</p>
-<p>We will revise our original ambitious project target in proposal and set a more reasonable goal for the later half of the project.</p>
+<p>In our original proposal, we stated:</p>
+<blockquote>
+<p>Our goal is to implement FCN using Halide and hopefully achieve faster training and testing without losing too much accuracy...</p>
+</blockquote>
+<blockquote>
+<p>With these vision layers in Halide, we can combine them into different networks for evaluation. Our first step is to combine them into Halide version of fully convolutional AlexNet (Halide-FCN-AlexNet). We will finetune Halide-FCN-AlexNet and Caffe-FCN-AlexNet on a subset of PASCAL VOC (thousands of images) and compare the time needed for convergence. We will also test both nets to compare the time needed to do inference. Our expectation is that with Halide, we have more power in scheduling tasks, which can potentially increase the training speed and testing speed. Since the algorithm in FCN is the same as previous work [4], we also expect that the performance will not differ too much.</p>
+</blockquote>
+<blockquote>
+<p>After testing Halide version of FCN-AlexNet, we will combine them into other networks and evaluate their performance against Caffe version.</p>
+</blockquote>
+<p>At current pace and with the difficulties we have faced, we have to decide to be more conservative. We will move the following two goals into the &quot;nice to have&quot; goals:</p>
+<ol>
+<li>&quot;hopefully achieve faster training&quot; -- we do not know if we can have backpropogation correctly implmented while trying to achieve comparable inference speed as caffe.</li>
+<li>&quot;we will combine them into other networks and evaluate their performance against Caffe version.&quot; -- we decide to focus on the FCN version before trying to make our framework general. There is little point in creating all the layers out there if we can't tune and create comparable performance as caffe.</li>
+</ol>
+<p>&lt;font color=&quot;red&quot;&gt;Should put a one liner summarizing our deliverables&lt;/font&gt;</p>
+<h2>The Dog and Pony Show</h2>
+<p>We plan to show a benchmark results for feedforward for both Caffe and our framework. Should we be able to solve our deployment issues on GHC or Latedays machines, we would also show the result for GPU trials. It would be nice to have backpropogation result if we have that completed. As we are still working on deconvolution, we can show the result of the stage before deconvolution for this input image.</p>
+<p><img src="https://raw.githubusercontent.com/xzhai1/latte/master/images/rgb.png" alt="alt text"></p>
+<p><img src="https://raw.githubusercontent.com/xzhai1/latte/master/outputs/result.png" alt="alt text"></p>
 <h2>Schedule</h2>
-<p>Schedule needs to be as detailed as possible, indicating what specific tasks we have left and who will be responsible for which part.</p>
+<p>&lt;font color=&quot;red&quot;&gt;
+Add the following tasks:</p>
+<ol>
+<li>Implement im2col and col2im</li>
+<li>(Re)implement convolution, deconvolution using im2col, col2im as well as efficient matrix matrix multiplication from fast parallel library.</li>
+<li>Set up Caffe on LATEDAYS or whatever other workable machine to produce Caffe result that serves as benchmark.</li>
+<li>Update the report webpage</li>
+</ol>
+<p>Some items cannot be finished by only one person.
+&lt;/font&gt;</p>
+<table>
+<thead>
+<tr>
+<th>Week of</th>
+<th></th>
+<th>Task</th>
+<th>Owner</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4/18 - 4/24</td>
+<td>1st half</td>
+<td>Figure out deconvolution implementation</td>
+<td>Haboric</td>
+</tr>
+<tr>
+<td></td>
+<td>2st half</td>
+<td>Benchmark feedforward against Caffe on the same model</td>
+<td>X.D.</td>
+</tr>
+<tr>
+<td>4/25 - 5/1</td>
+<td>1st half</td>
+<td>Explore Halide scheduling and performance tune</td>
+<td>X.D.</td>
+</tr>
+<tr>
+<td></td>
+<td>2st half</td>
+<td>Explore possibility of backward propogation in Halide</td>
+<td>Haboric</td>
+</tr>
+<tr>
+<td>5/2 - 5/8</td>
+<td>1st half</td>
+<td>Benchmark whole pipeline against Caffe and performance tune</td>
+<td>Haboric</td>
+</tr>
+<tr>
+<td></td>
+<td>2st half</td>
+<td>Documentation, presentation preparation and report writeup</td>
+<td>X.D.</td>
+</tr>
+</tbody>
+</table>
 <h2>Reference</h2>
 <p>[^1] Noh, Hyeonwoo, Seunghoon Hong, and Bohyung Han. &quot;Learning deconvolution network for semantic segmentation.&quot; Proceedings of the IEEE International Conference on Computer Vision. 2015.</p>
 <p>[^2] http://www.vlfeat.org/matconvnet/</p>
