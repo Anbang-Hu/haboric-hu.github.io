@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="Latte: Fully Convolutional Networks in Halide
+Anbang Hu, Xingda Zhai
+View on Github
+Summary
+We implemented inference pipeline for fully convolutional networks(FCNs) in Halide on CPUs on a single machi">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Hexo">
+<meta property="og:url" content="http://yoursite.com/parallel-final/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="Latte: Fully Convolutional Networks in Halide
+Anbang Hu, Xingda Zhai
+View on Github
+Summary
+We implemented inference pipeline for fully convolutional networks(FCNs) in Halide on CPUs on a single machi">
+<meta property="og:image" content="https://raw.githubusercontent.com/xzhai1/latte/master/figures/fcn.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xzhai1/latte/master/figures/simple_network.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xzhai1/latte/master/figures/convolution.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xzhai1/latte/master/figures/deconvolution.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xzhai1/latte/master/figures/deconvolution2.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xzhai1/latte/master/images/v1_vs_v2.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xzhai1/latte/master/images/cat.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xzhai1/latte/master/images/inference_time_all_versions.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xzhai1/latte/master/images/cat_deconv_results.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xzhai1/latte/master/images/cat_seg_result.png">
+<meta property="og:image" content="https://raw.githubusercontent.com/xzhai1/latte/master/images/fun_segmentation_result.png">
+<meta property="og:updated_time" content="2016-05-07T11:09:07.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Hexo">
+<meta name="twitter:description" content="Latte: Fully Convolutional Networks in Halide
+Anbang Hu, Xingda Zhai
+View on Github
+Summary
+We implemented inference pipeline for fully convolutional networks(FCNs) in Halide on CPUs on a single machi">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/xzhai1/latte/master/figures/fcn.png">
+  
+    <link rel="alternative" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/style.css">
+  
+
+</head>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <div class="outer">
+        <section id="main"><article id="page-undefined" class="article article-type-page" itemscope itemprop="blogPost">
+  
+  <div class="article-inner">
+    
+    <div class="article-meta">
+      <a href="/parallel-final/index.html" class="article-date">
+  <time datetime="2016-05-07T11:09:08.000Z" itemprop="datePublished">2016-05-07</time>
+</a>
+      
+    </div>
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1>Latte: Fully Convolutional Networks in Halide</h1>
+<p>Anbang Hu, Xingda Zhai</p>
+<p><a href="/https://github.com/xzhai1/latte">View on Github</a></p>
+<h2>Summary</h2>
+<p>We implemented inference pipeline for fully convolutional networks(FCNs) in Halide on CPUs on a single machine and compared the performance of our implementation against that of caffe.</p>
+<h2>Background</h2>
+<h3>FCN</h3>
+<p>Convolutional Neural Networks(CNNs) have been widely used in a variety of computer vision tasks, including classification <sup class="footnote-ref"><a href="#fn1" id="fnref1">[1]</a></sup>, object detection <sup class="footnote-ref"><a href="#fn2" id="fnref2">[2]</a></sup>, and human pose recognition <sup class="footnote-ref"><a href="#fn3" id="fnref3">[3]</a></sup>. Drawing inspiration from human perceptive and recognitive system, it utilizes multiple layers of convolution to extract low level attributes that contribute to recognition of more salient higher features. The convolutional layers are usually followed by fully connected
+neural network layers for final classification. Long <em>et al.</em> <sup class="footnote-ref"><a href="#fn4" id="fnref4">[4]</a></sup> introduced Fully Convolutional Networks(FCNs) that replace the last neural network layers with convolutional counterparts for image segmentation tasks without trading off classification accuracy. The architecture of FCN is illustrated below where the input image is down sampled layer after layer by convolution before being upsampled by deconvolution layer.
+<img src="https://raw.githubusercontent.com/xzhai1/latte/master/figures/fcn.png" alt="">
+Long <em>et al.</em> used the Caffe framework(explained next) to train and test their model which is published in their github (repo)[https://github.com/shelhamer/fcn.berkeleyvision.org].</p>
+<h3>Caffe <sup class="footnote-ref"><a href="#fn5" id="fnref5">[5]</a></sup></h3>
+<p>CNNs and FCNs are so widely used and popular that a Berkley graduate student <a href="http://caffe.berkeleyvision.org/" target="_blank" rel="external">Yangqing Jia</a> made himself a deep learning framework and released it under the public domain. He named it Caffe.</p>
+<p>To train and fine tune the network, the user simply needs to do 4 things. First, convert data set into either LMDB or HDF5 format so caffe can read it. Second, define the desired network in a <code>.prototxt</code> file consistent with the building blocks defined in <a href="https://github.com/BVLC/caffe/blob/master/src/caffe/proto/caffe.proto" target="_blank" rel="external"><code>caffe.proto</code></a>) like this one:
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">name: &quot;convolution&quot;</span><br><span class="line">input: &quot;data&quot;</span><br><span class="line">input_dim: 1</span><br><span class="line">input_dim: 1</span><br><span class="line">input_dim: 100</span><br><span class="line">input_dim: 100</span><br><span class="line">layer &#123;</span><br><span class="line">      name: &quot;conv&quot;</span><br><span class="line">        type: &quot;Convolution&quot;</span><br><span class="line">          bottom: &quot;data&quot;</span><br><span class="line">            top: &quot;conv&quot;</span><br><span class="line">              convolution_param &#123;</span><br><span class="line">                      num_output: 3</span><br><span class="line">                          kernel_size: 5</span><br><span class="line">                              stride: 1</span><br><span class="line">                                  weight_filler &#123;</span><br><span class="line">                                            type: &quot;gaussian&quot;</span><br><span class="line">                                                  std: 0.01</span><br><span class="line">                                                      &#125;</span><br><span class="line">                                                          bias_filler &#123;</span><br><span class="line">                                                                    type: &quot;constant&quot;</span><br><span class="line">                                                                          value: 0</span><br><span class="line">                                                                              &#125;</span><br><span class="line">                                                                                &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>and the framework will produce a network looking like this:
+<img src="https://raw.githubusercontent.com/xzhai1/latte/master/figures/simple_network.png" alt="">
+Next, define the solver in a <code>.prototxt</code> file like this one where you specify how many times you wish to iterate and how often you want to take a snapshot of the whole network:
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">train_net: &quot;train.prototxt&quot;</span><br><span class="line">test_net: &quot;val.prototxt&quot;</span><br><span class="line">test_iter: 1111</span><br><span class="line"># make test net, but don&apos;t invoke it from the solver itself</span><br><span class="line">test_interval: 999999999</span><br><span class="line">display: 20</span><br><span class="line">average_loss: 20</span><br><span class="line">lr_policy: &quot;fixed&quot;</span><br><span class="line"># lr for unnormalized softmax</span><br><span class="line">base_lr: 1e-10</span><br><span class="line"># high momentum</span><br><span class="line">momentum: 0.99</span><br><span class="line"># no gradient accumulation</span><br><span class="line">iter_size: 1</span><br><span class="line">max_iter: 100000</span><br><span class="line">weight_decay: 0.0005</span><br><span class="line">snapshot: 4000</span><br><span class="line">snapshot_prefix: &quot;snapshot/train&quot;</span><br><span class="line">test_initialization: false</span><br></pre></td></tr></table></figure></p>
+<p>Lastly, train the network, optionally with pre-trained weights with one command:</p>
+<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">./build/tools/caffe train \</span><br><span class="line">    -gpu 1 \</span><br><span class="line">        -model path/to/netmodel.prototxt \</span><br><span class="line">            -solver path/to/solver.prototxt \</span><br><span class="line">                -weights path/to/pretrained_weights.caffemodel</span><br></pre></td></tr></table></figure></p>
+<pre><code>            and your network is in the making.
+</code></pre>
+<h3>Halide <sup class="footnote-ref"><a href="#fn6" id="fnref6">[6]</a></sup></h3>
+<p>We wanted to reuse Long <em>et al.</em>'s model and trained weights, but not under the Caffe framework. We thought since we are dealing with images here, we should use an image domain specific language. This is where <a href="http://halide-lang.org/" target="_blank" rel="external">Halide</a> comes in. Halide is a programming language specifically designed for high-performance image processing on modern machines. It separates algorithm from schedules, making it easier and more flexible to write image processing code. We used Halide to
+implement different layers of FCN and explore different scheduling algorithm in this project.</p>
+<h3>Data structure &amp; operations</h3>
+<p>There is a fine line between data structures and operations in convolutional network. Basic layers can be viewed as basic operations as well.</p>
+<h4>Data</h4>
+<p>Data layer is nothing but a wrapper around the input images. It is used to be passed onto the next layer which is usually a convolutional layer.</p>
+<h4>Convolution</h4>
+<p><img src="https://raw.githubusercontent.com/xzhai1/latte/master/figures/convolution.png" alt="">
+Image convolution is a reduction step. A kernel(or filter, used interchangeably in this writeup) with an equal channel dimension slides around the image, and at every footprint, it produces a dot product between itself and the 3D patch below it. Each filter identifies a single low level feature and a convolutional layer uses multiple filters for various feature extractions. The resulting images(or feature mapes) are stacked together to form a single 3D blob to be passed to the next stage.</p>
+<p>Generally, a convolution layer accepts a 4D volume of W1 x H1 x C1 x B1, where B1 stands for input batch size. With N being number of filters, K being the kernel size, S being the stride and P being the padding on the image, it produces a volume of W2 = (W1 - K + 2P)/S + 1, H2 = (H1 - K + 2P)/S + 1, C2 = N, and B2 = B1.</p>
+<h4>ReLU</h4>
+<p>ReLU stands for Rectified Linear Unit. It applies an activation function to each output pixel value from convolutional layer. If the pixel value is nonnegative, ReLU does nothing. Otherwise, it multiplies the pixel value by some predetermined negative slope factor. Since this layer does per pixel operations, it does not modify the dimension of the input.</p>
+<h4>Pooling</h4>
+<p>Pooling happens from time to time and its purpose is to prune away redundant information, yet retain essential feature information from input. It is different from convolution in one aspect: instead of taking the dot product with the 3D patch below the kernel, it finds the max within <strong>EACH</strong> layer of the patch. As a result, it maintains the channel dimension but reduces width and height.</p>
+<h4>Deconvolution</h4>
+<p><img src="https://raw.githubusercontent.com/xzhai1/latte/master/figures/deconvolution.png" alt="">
+There are lots of explanations of deconvolution out in the wild, many from the signal processing realm, with unwieldy equations that scare away even the most math savvy of us. After much effort, we internalized its semantics and came up with an explanation that is intuitive and user friendly.</p>
+<p>Deconvolution is best explained using pinhole photography with the following setup: The kernel is a filter that has, at the granularity level of pixels, different colors, i.e. one color for one pixel. The input pixels are light sources whose rays have to shine through the pinhole. The output is the film/CMOS/CCD we want to expose.</p>
+<p><img src="https://raw.githubusercontent.com/xzhai1/latte/master/figures/deconvolution2.png" alt=""></p>
+<p>When the rays break out of the pinhole, they strike different positions on the filter; the distances between their respective footprints are determined by the distance between the filter and the pinhole, i.e. step size; the larger the step size, the further apart the footprints are; in the example, the step size is 2. To perform the deconvolution, fix the position of the input and the kernel, and move the pinhole in its plane subject to the condition that at least one ray of light has to
+fall on the filter(shown in the second diagram). The pixel value in the output is the (sum) mixture of all rays falling on it after passing through, and having been modified by, the filter.</p>
+<h4>Crop</h4>
+<p>Cropping occurs at the very end of FCN. Deconvolution usually produces an output with spatial dimension larger than the original image size. Hence to recover the original image, we use a crop layer to trim away the strips at the edges.</p>
+<h2>Implementation Approach</h2>
+<p>Much of this project is about &quot;taking care of plumbing&quot;, the unglamorous part that has to be done before we even attempt to iterate around Halide scheduling. We had to learn what Caffe, Halide and protobuf are and how to set them up. We started developing with our local machines and when we were ready to test on a GHC or Latedays node, we were met with lots of blockers. Because this project relies on a number of outside libraries which themselves require external libraries for
+building, numerous depency issues stopped us from experimenting on a none local machine. For example, we had to build LLVM to build Halide to build our project on Latedays. For awhile, we had to resort to a desktop machine across the pacific (Haboric's personal desktop) to test our pipeline and then brings back the images for validation.</p>
+<h3>I/O</h3>
+<p>The first thing we need to do is to read in the <code>deploy.prototxt</code> which is human readable and describes the network architecture, and <code>fcn32s-heavy-pascal.caffemodel</code> which is binary data serialized by protobuf we can't poke into. To get oriented, we had to examine closely the <code>caffe.proto</code> file which contains all the layer definitions and their associated parameters, and discovered that the <code>.caffemodel</code> file actually stores the <code>NetParameter</code> data. From its accessor methods,
+we can obtain all the layers and drill down to each of them to obtain their name, type and weight data.</p>
+<h3>Algorithm overview</h3>
+<p>All layers inherit from a base class which is an encapsulation of a few common variables:
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">std::string name;</span><br><span class="line">std::string type;</span><br><span class="line"></span><br><span class="line">Halide::Var i, j, k, l; </span><br><span class="line">Halide::Func storage;</span><br><span class="line"></span><br><span class="line">int width;</span><br><span class="line">int height;                                                     </span><br><span class="line">int channels;                                                    </span><br><span class="line">int batchsize;</span><br></pre></td></tr></table></figure></p>
+<p>In addition to the usual name and type variables, each layer knows how to calculate its output size given a particular input size. Batch size, the number of images being pushed through the pipeline simultaneously, remains invariant from layer to layer.</p>
+<p>Most importantly, each layer owns a Halide function that is defined over 4 variables corresponding to each of the output dimensions. It is our job to define and schedule the said function for each type of layer.</p>
+<p>As we loop through each layer in the <code>NetParameter</code>, the <code>type</code> variable helps us determine which constructor to invoke to build the layer. However, regardless of layer type, the constructor does a common set of operations. It first calculates its output dimension using the previous layer's output size and its own parameters such as step size, padding and kernel size.</p>
+<p>Then it set up boundary condition by defining a function that clamps the previous layer's output function at its defined dimensions. Any out of bound access to the clamped function will yield zero value:</p>
+<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Func clamped = BoundaryConditions::constant_exterior(</span><br><span class="line">      prev-&gt;storage, 0.f, 0, prev-&gt;get_width(), 0, prev-&gt;get_height());</span><br></pre></td></tr></table></figure></p>
+<p>Afterwards, the constructor goes on to define both the algorithm and the scheduling of the output function which is different from layer to layer.</p>
+<h4>Convolutional layer</h4>
+<p>Since convolution is a reduction operation, it will be convenient to define a reduction domain, i.e. (K x K x C x N); K is the kernel size, C is the input channel width and N is the batch size. The algorithm can thus defined as follows:</p>
+<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">storage(i, j, k, l) =                                                         </span><br><span class="line">    sum(kernel(r.x, r.y, r.z, k) *                                              </span><br><span class="line">            clamped(i*stride + r.x - pad, j*stride + r.y - pad, r.z, l))            </span><br><span class="line">        + bias(0, 0, 0, k);</span><br></pre></td></tr></table></figure></p>
+<h4>Deconvolutional layer <sup class="footnote-ref"><a href="#fn7" id="fnref7">[7]</a></sup></h4>
+<p>Deconvolution is slightly less straightforward. Operations on reduction domain have to be performed in step size of 1. This creates a difficulty when step size is not 1, case in point, our explanation of deconv in the previous section. Hence, we need to define a reduction domain of the following size</p>
+<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">int kernel_step = kernel_size / stride;</span><br><span class="line">RDom r(0, kernel_step, 0, kernel_step, 0, prev-&gt;get_channels());</span><br></pre></td></tr></table></figure></p>
+<p>and when we &quot;loop through&quot; it, we expand the step size to recover the intended indices as shown below:
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">storage(i, j, k, l) = </span><br><span class="line">    sum(kernel(r.x*stride + i%stride, r.y*stride + j%stride, r.z, k) * </span><br><span class="line">            prev-&gt;storage(i/stride - r.x, j/stride - r.y, r.z, l));</span><br></pre></td></tr></table></figure></p>
+<h4>Pooling layer</h4>
+<p>Pooling layer requires no special operation. We are simply taking a maxium value under the reduction domain.
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">storage(i, j, k, l) = </span><br><span class="line">    maximum(prev-&gt;storage(i*stride + r.x, j*stride + r.y, k, l));</span><br></pre></td></tr></table></figure></p>
+<h4>ReLU layer</h4>
+<p>ReLU operates on a per pixel level and no reduction domain is necessary. We either retain the positive value or multiply the negative value with a predefined scaling factor.
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">storage(i, j, k, l) = max(0, prev-&gt;storage(i, j, k, l)) + </span><br><span class="line">                        negative_slope*min(0, prev-&gt;storage(i, j, k, l));</span><br></pre></td></tr></table></figure></p>
+<h3>Scheduling</h3>
+<p>We implemented numerous versions of scheduling policies, but only a handful are competitive against Caffe.</p>
+<h4>version 1</h4>
+<p>We first tried to optimize for convolution because it is the dominant layer in the network and computational intensive. What works for convolution should also work for Pooling and ReLU.</p>
+<p>Pixels along the same z dimension are obtained by having all the filters operate on the same patch of input data. They are independent of each other and therefore should be parallize across cores. Within each layer, neighboring pixels share both input data and kernel weights. When stride size is 1, neighhoring pixels perform same operations on neighboring input data. Therefore we should vectorize in the xy dimension.</p>
+<h4>version 2</h4>
+<p>As an alternative to <strong>version 1</strong>, we tried creating strips in the y dimension and parallelize across each strips. Within each strip, we still vectorize in the x dimension. Here is a comparison on the time elapsed  between the two scheduling policies at different layer indices.
+<img src="https://raw.githubusercontent.com/xzhai1/latte/master/images/v1_vs_v2.png" alt=""></p>
+<p>From the figure, it is clear that layer 28 is an dividing point. Version 1 has the lead before it, but loses to version 2 after. The underlying reason can be observed by examing the output dimensions of each layer:</p>
+<p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">Layer       Type            W   H   C   N</span><br><span class="line">1   conv1_1     Convolution     698 698 64  1</span><br><span class="line">2   relu1_1     ReLU            698 698 64  1</span><br><span class="line">3   conv1_2     Convolution     698 698 64  1</span><br><span class="line">4   relu1_2     ReLU            698 698 64  1</span><br><span class="line">5   pool1       Pooling         349 349 64  1</span><br><span class="line">6   conv2_1     Convolution     349 349 128 1</span><br><span class="line">7   relu2_1     ReLU            349 349 128 1</span><br><span class="line">8   conv2_2     Convolution     349 349 128 1</span><br><span class="line">9   relu2_2     ReLU            349 349 128 1</span><br><span class="line">10  pool2       Pooling         174 174 128 1</span><br><span class="line">11  conv3_1     Convolution     174 174 256 1</span><br><span class="line">12  relu3_1     ReLU            174 174 256 1</span><br><span class="line">13  conv3_2     Convolution     174 174 256 1</span><br><span class="line">14  relu3_2     ReLU            174 174 256 1</span><br><span class="line">15  conv3_3     Convolution     174 174 256 1</span><br><span class="line">16  relu3_3     ReLU            174 174 256 1</span><br><span class="line">17  pool3       Pooling         87  87  256 1</span><br><span class="line">18  conv4_1     Convolution     87  87  512 1</span><br><span class="line">19  relu4_1     ReLU            87  87  512 1</span><br><span class="line">20  conv4_2     Convolution     87  87  512 1</span><br><span class="line">21  relu4_2     ReLU            87  87  512 1</span><br><span class="line">22  conv4_3     Convolution     87  87  512 1</span><br><span class="line">23  relu4_3     ReLU            87  87  512 1</span><br><span class="line">24  pool4       Pooling         43  43  512 1</span><br><span class="line">25  conv5_1     Convolution     43  43  512 1</span><br><span class="line">26  relu5_1     ReLU            43  43  512 1</span><br><span class="line">27  conv5_2     Convolution     43  43  512 1</span><br><span class="line">28  relu5_2     ReLU            43  43  512 1</span><br><span class="line">29  conv5_3     Convolution     43  43  512 1</span><br><span class="line">30  relu5_3     ReLU            43  43  512 1</span><br><span class="line">31  pool5       Pooling         15  15  4906    1</span><br><span class="line">32  fc6     Convolution     15  15  4906    1</span><br><span class="line">33  relu6       ReLU            15  15  4906    1</span><br><span class="line">34  fc7     Convolution     15  15  4906    1</span><br><span class="line">35  relu7       ReLU            15  15  4906    1</span><br><span class="line">36  score_fr    Convolution     15  15  21  1</span><br><span class="line">37  upscore     Deconvolution       512 512 21  1</span><br><span class="line">38  score       Crop            500 500 21  1</span><br></pre></td></tr></table></figure></p>
+<h4>version 3</h4>
+<p>The said behavior above provided us with hint to dynamically choose scheduling algorithm based on the relative size of spatial dimension and channel dimension. As the convolutional layer goes deeper, the spatial dimensions (width and height) shrink, whereas the channel dimension grows (pretty hard).  If spatial dimension is at least half of channel dimension, we use <strong>version 1</strong>; otherwise, we use <strong>version 2</strong>.</p>
+<h4>version 4</h4>
+<p>We weren't sure if our model was either compute bound or memory bound so we decided to compute clamped function at root and store all the results before passing them to <code>storage</code>. This elevated our performance and we conjectured that the model is largely compute bound.</p>
+<h4>version 5</h4>
+<p>We further experimented with changing all streaming to <code>compute_root</code> and <code>store_root</code> and obtained further elevation of our results.</p>
+<h2>Results</h2>
+<h3>Evaluation benchmark (Caffe result)</h3>
+<p>We compared against Caffe's CPU implementation in terms of inference time per image, i.e. s/image.</p>
+<p>Evaluation was done three times and the best result was chosen.</p>
+<h3>Experimental setup</h3>
+<p>Experiments were conducted on one Latedays node with Xeon CPU E5-2620 and 16 GB memory. The CPUs have 12 cores with two-way hyperthreading. Processor frequency is 2.4 GHz. LLC cache size is 15 MB.</p>
+<p>The size of input image was 500 x 500 x 3. More specifically, we used cute <code>cat.png</code> as test image:
+<img src="https://raw.githubusercontent.com/xzhai1/latte/master/images/cat.png" alt=""></p>
+<p>When we performed experiments of batch processing, <code>cat.png</code> was replicated and stacked together to form a batch input.</p>
+<p>The pretrained model we used was <code>fcn32s-heavy-pascal.caffemodel</code><sup class="footnote-ref"><a href="#fn8" id="fnref8">[8]</a></sup>, which is 520 MB.</p>
+<h3>It's a close win</h3>
+<p><img src="https://raw.githubusercontent.com/xzhai1/latte/master/images/inference_time_all_versions.png" alt=""></p>
+<p>The above figure shows six curves of running time as it progresses into deeper layers. The red dashed curve corresponds to Caffe. The gray curve corresponds to <strong>version 1</strong>. The dark green curve corresponds to <strong>version 2</strong>. The blue curve corresponds to <strong>version 3</strong>. The yellow curve corresponds to <strong>version 4</strong>. The light green curve corresponds to <strong>version 5</strong>.</p>
+<p>By precomputing and storing clamped data, the Halide pipeline runs faster than Caffe. The figure shows that most of time, Halide beats Caffe, but some time at the very end, is surpassed a bit by Caffe. However, optimized BLAS library, including MKL, ATLAS, does not provide efficient cropping algorithm. On the contrary, in Halide, cropping is just a simple step to leave out unwanted regions. This explains the weird phenomenon that Caffe shoots up at the end of the network.</p>
+<p><strong>More statistics</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center"></th>
+<th style="text-align:center">Halide</th>
+<th style="text-align:center">Caffe</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">Best inference time (s)</td>
+<td style="text-align:center">2.849</td>
+<td style="text-align:center">4.201</td>
+</tr>
+<tr>
+<td style="text-align:center">Peak memory usage (GB)</td>
+<td style="text-align:center">1.472</td>
+<td style="text-align:center">4.8</td>
+</tr>
+</tbody>
+</table>
+<p>Our Halide implementation comes out even with Caffe in terms of best inference time. The peak memory usage of our Halide implementation is less than one third of that of Caffe.</p>
+<p>When doing batch processing on one Latedays node, Caffe can only handle 3 image-batch, while Latte can handle 11-image batch. It is consistent to their peak memory usage.</p>
+<p>The segmentation result matches that produced from caffe.</p>
+<h3>What segmentation results look like</h3>
+<p>We show some results from our cute <code>cat.png</code> example.</p>
+<p><strong>Results from deconvolutional layer</strong>:
+<img src="https://raw.githubusercontent.com/xzhai1/latte/master/images/cat_deconv_results.png" alt=""></p>
+<p><strong>Segmentation result</strong>:
+<img src="https://raw.githubusercontent.com/xzhai1/latte/master/images/cat_seg_result.png" alt=""></p>
+<h3>More segmentation results for fun</h3>
+<p>In the following, the segmentation result appears on the right of the image.<br>
+<img src="https://raw.githubusercontent.com/xzhai1/latte/master/images/fun_segmentation_result.png" alt=""></p>
+<p>Segmentation results from this project is nothing close to state-of-the-art results produced by a mixture FCN and CRF, because we adopted a simple FCN model and focued more on parallel computation analysis.</p>
+<h2>Work Division</h2>
+<p>Equal work was performed by both project members.</p>
+<h2><strong>References</strong></h2>
+<hr class="footnotes-sep">
+<section class="footnotes">
+<ol class="footnotes-list">
+<li id="fn1" class="footnote-item"><p>Krizhevsky, Alex, Ilya Sutskever, and Geoffrey E. Hinton. &quot;Imagenet classification with deep convolutional neural networks.&quot; Advances in neural information processing systems. 2012. <a href="#fnref1" class="footnote-backref">↩</a></p>
+</li>
+<li id="fn2" class="footnote-item"><p>Ren, Shaoqing, et al. &quot;Faster R-CNN: Towards real-time object detection with region proposal networks.&quot; Advances in Neural Information Processing Systems. 2015. <a href="#fnref2" class="footnote-backref">↩</a></p>
+</li>
+<li id="fn3" class="footnote-item"><p>Toshev, Alexander, and Christian Szegedy. &quot;Deeppose: Human pose estimation via deep neural networks.&quot; Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition. 2014. <a href="#fnref3" class="footnote-backref">↩</a></p>
+</li>
+<li id="fn4" class="footnote-item"><p>Long, Jonathan, Evan Shelhamer, and Trevor Darrell. &quot;Fully convolutional networks for semantic segmentation.&quot; Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition. 2015. <a href="#fnref4" class="footnote-backref">↩</a></p>
+</li>
+<li id="fn5" class="footnote-item"><p>https://github.com/BVLC/caffe <a href="#fnref5" class="footnote-backref">↩</a></p>
+</li>
+<li id="fn6" class="footnote-item"><p>http://halide-lang.org/ <a href="#fnref6" class="footnote-backref">↩</a></p>
+</li>
+<li id="fn7" class="footnote-item"><p>http://www.vlfeat.org/matconvnet/matconvnet-manual.pdf <a href="#fnref7" class="footnote-backref">↩</a></p>
+</li>
+<li id="fn8" class="footnote-item"><p>https://github.com/shelhamer/fcn.berkeleyvision.org <a href="#fnref8" class="footnote-backref">↩</a></p>
+</li>
+</ol>
+</section>
+
+      
+
+      
+        
+    </div>
+  </div>
+  
+    
+  
+</article>
+
+</section>
+        <aside id="sidebar">
+  <nav class="menus">
+  	<ul>
+  		<li><a href="/"><i class="icon icon-home"></i></a></li>
+  		
+			<li><a href="/archives"><i class="icon icon-fenlei"></i></a></li>
+  		
+  		
+			<li><a href="/tags"><i class="icon icon-tag"></i></a></li>
+  		
+  		
+  			<li><a href="https://github.com/" target="_blank"><i class="icon icon-github"></i></a></li>
+  		
+  	</ul>
+  </nav>
+  <a id="go-top" href="#"><i class="icon icon-up"></i></a>
+</aside>
+      </div>
+      <footer id="footer">
+  
+	<div id="footer-info" class="inner">
+	  &copy; 2016 Anbang Hu 
+	  - Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+	  - Theme <a href="https://github.com/Alex-fun/hexo-theme-jane/" target="_blank">Jane</a>
+	</div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+    <a href="/tags" class="mobile-nav-link">Tag</a>
+  
+    <a href="https://github.com/" class="mobile-nav-link">Github</a>
+  
+</nav>
+    
+
+<script src="//cdn.bootcss.com/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+  </div>
+</body>
+</html>
