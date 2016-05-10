@@ -32,7 +32,7 @@ We implemented inference pipeline for fully convolutional networks(FCNs) in Hali
 <meta property="og:image" content="https://raw.githubusercontent.com/xzhai1/latte/master/images/cat_deconv_results.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/xzhai1/latte/master/images/cat_seg_result.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/xzhai1/latte/master/images/fun_segmentation_result.png">
-<meta property="og:updated_time" content="2016-05-10T00:41:29.000Z">
+<meta property="og:updated_time" content="2016-05-10T01:03:07.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Hexo">
 <meta name="twitter:description" content="Latte: Fully Convolutional Networks in Halide
@@ -62,7 +62,7 @@ We implemented inference pipeline for fully convolutional networks(FCNs) in Hali
     
     <div class="article-meta">
       <a href="/parallel-final/index.html" class="article-date">
-  <time datetime="2016-05-10T00:41:29.000Z" itemprop="datePublished">2016-05-09</time>
+  <time datetime="2016-05-10T01:03:07.000Z" itemprop="datePublished">2016-05-09</time>
 </a>
       
     </div>
@@ -235,13 +235,13 @@ There are lots of explanations of deconvolution out in the wild, many from the s
 <h3>Other efforts we put in</h3>
 <ol>
 <li>
-<p>im2col: we tried but not realized that it defeats the whole purpose of using Halide.</p>
+<p>We implemented <code>im2col</code>, but realized that using <code>im2col</code> defeats the whole purpose of using Halide.</p>
 </li>
 <li>
-<p>passing Func to passing layer directly: reduce the compile time</p>
+<p>Our initial implementation passed <code>storage</code> of each layer into the next layer when building and compiling network. This is an inefficient implementation, since building later layers causes rebuilding previous layers (we have to call <code>compile_jit</code> on Func return from each built layer). We changed our implementation so that a layer is directly passed into the next layer. In this way, we only compile the network once at the end, removing recompilation overhead.</p>
 </li>
 <li>
-<p>GPU implementation, but does not run as fast as our CPU version.</p>
+<p>Although our project was targeted at high performance CPUs, we also implemented Halide version on GPU. Unfortunately, currently GPU version does not run as fast as CPU version, the reason behind which we are still trying to figure out. More specifically, current GPU version needs 8 seconds to run through inference pipeline. We did not further our exploration on GPU version due to lack of time. But theoretically, a good Halide GPU implementation could give us 6~10x speedup on Latedays.</p>
 </li>
 </ol>
 <h2>Work Division</h2>
