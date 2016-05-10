@@ -32,7 +32,7 @@ We implemented inference pipeline for fully convolutional networks(FCNs) in Hali
 <meta property="og:image" content="https://raw.githubusercontent.com/xzhai1/latte/master/images/cat_deconv_results.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/xzhai1/latte/master/images/cat_seg_result.png">
 <meta property="og:image" content="https://raw.githubusercontent.com/xzhai1/latte/master/images/fun_segmentation_result.png">
-<meta property="og:updated_time" content="2016-05-10T01:16:29.000Z">
+<meta property="og:updated_time" content="2016-05-10T01:17:14.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Hexo">
 <meta name="twitter:description" content="Latte: Fully Convolutional Networks in Halide
@@ -62,7 +62,7 @@ We implemented inference pipeline for fully convolutional networks(FCNs) in Hali
     
     <div class="article-meta">
       <a href="/parallel-final/index.html" class="article-date">
-  <time datetime="2016-05-10T01:16:29.000Z" itemprop="datePublished">2016-05-09</time>
+  <time datetime="2016-05-10T01:17:14.000Z" itemprop="datePublished">2016-05-09</time>
 </a>
       
     </div>
@@ -218,7 +218,7 @@ There are lots of explanations of deconvolution out in the wild, many from the s
 <p>One significant advantage Latte has over Caffe is its efficient use of memory; at peak, latte has 3~4x less memory footprint. The reason is that Caffe uses im2col to convert image into column matrices so that it can use highly optimized linear algebra routine to perform convolution. However, there is no free lunch in this world; im2col converts each patch of input into column resulting in duplication of image pixels. In Latte however, no such duplication was created. At most, the result of one layer is fully resident in memory.</p>
 <p>According to the following histogram from our experiement, this advantage allows Latte to process 11 images in a batch while Caffe can only handle 3. This result is consistent with what peak memory usage.</p>
 <p><img src="https://raw.githubusercontent.com/xzhai1/latte/master/images/memory_usage.png" alt=""></p>
-<h4>As image size change</h4>
+<h4>As image size changes</h4>
 <p>We also wanted to see how well our implementation scales with increasing image size (width). As image dimension increases, the number of pixels, i.e. calcuations, increase quadratically. The following gragh suggests that our implementation only adds constant overhead for inferencing because it is also quadratic in nature. It is a pity that we couldn't test on Latedays CPUs with Caffe because our MKL license expired.</p>
 <p><img src="https://raw.githubusercontent.com/xzhai1/latte/master/images/halide_inference_time_diff_img_sizes.png" alt=""></p>
 <h3>What segmentation results look like</h3>
